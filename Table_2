@@ -28,8 +28,6 @@ CREATE TABLE Notice (		# 공지 테이블
 CREATE TABLE ChallengePage (
     page_id INT PRIMARY KEY AUTO_INCREMENT,           -- 페이지 고유 ID (자동 증가)
     page_name VARCHAR(50) NOT NULL                   -- 페이지 이름 (예: '챌린지 목록', '챌린지 등록', 필수 입력)
-    #created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,   -- 페이지 생성 시간 (자동 설정)
-    #updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP -- 마지막 수정 시간 (자동 갱신)
 );
 
 CREATE TABLE ChallengeMake (
