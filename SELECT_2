@@ -1,0 +1,11 @@
+-- 모든 테이블 데이터 조회
+SELECT * FROM Users;
+SELECT * FROM Comments;
+SELECT * FROM Notice;
+SELECT * FROM ChallengePage;
+SELECT * FROM ChallengeMake;
+SELECT * FROM ChallengeBoard;
+SELECT * FROM ChallengePost;
+SELECT * FROM CompetitionPage;
+SELECT * FROM CompetitionDetails;
+SELECT * FROM RecruitmentPosts;
