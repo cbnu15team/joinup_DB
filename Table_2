@@ -1,0 +1,109 @@
+DROP DATABASE JoinUp;
+CREATE DATABASE JoinUp;
+USE JoinUp;	
+CREATE TABLE Users (		# 사용자 테이블
+	id			VARCHAR(10) NOT NULL UNIQUE,	# 로그인 시 사용하는 ID, UNIQUE : 중복방지
+	passwords	VARCHAR(10) NOT NULL,			# 로그인 시 사용하는 비밀번호
+    real_name		VARCHAR(20) NOT NULL,			# 유저 이름(실명)
+    birth		VARCHAR(8) NOT NULL,			# 유저 생년월일 8자
+    phone CHAR(11) CHECK (PHONE REGEXP '^010[0-9]{8}$'),	# 유저 전화번호 11자, "010"으로 시작하고 뒤에 숫자 8개가 와야 저장됨
+    user_id 	INT AUTO_INCREMENT PRIMARY KEY	# 유저의 고유 식별자
+);
+
+CREATE TABLE Comments (		# 댓글 테이블
+    comment_id     INT AUTO_INCREMENT PRIMARY KEY, # 댓글 고유 식별자
+    user_id        INT NOT NULL,                   # 댓글 작성자 (Users 테이블의 USER_ID 참조)
+    content        VARCHAR(100) NOT NULL,          # 댓글 내용 (최대 100자)
+    created_at     DATE NOT NULL,                  # 댓글 작성일 (년, 월, 일 형식)
+    FOREIGN KEY (USER_ID) REFERENCES Users(USER_ID) ON DELETE CASCADE # Users 테이블과 연관
+);
+
+CREATE TABLE Notice (		# 공지 테이블
+    notice_id    INT AUTO_INCREMENT PRIMARY KEY, -- 공지글 고유 식별자 (목록 번호)
+    title        VARCHAR(100) NOT NULL,          -- 공지글 제목 (최대 100자)
+    content      TEXT NOT NULL,                  -- 공지글 내용
+    upload_date  DATE NOT NULL                   -- 공지글 업로드 일시 (년, 월, 일)
+);
+
+CREATE TABLE ChallengePage (
+    page_id INT PRIMARY KEY AUTO_INCREMENT,           -- 페이지 고유 ID (자동 증가)
+    page_name VARCHAR(50) NOT NULL                   -- 페이지 이름 (예: '챌린지 목록', '챌린지 등록', 필수 입력)
+    #created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,   -- 페이지 생성 시간 (자동 설정)
+    #updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP -- 마지막 수정 시간 (자동 갱신)
+);
+
+CREATE TABLE ChallengeMake (
+    challenge_id INT PRIMARY KEY AUTO_INCREMENT,         -- 챌린지 고유 ID (자동 증가)
+    title VARCHAR(20) NOT NULL,                         -- 챌린지 제목 (최대 20자, 필수 입력)
+    description VARCHAR(300),                           -- 챌린지 설명 (최대 300자, 선택 입력)
+    start_date DATE NOT NULL,                           -- 챌린지 시작 날짜 (필수 입력)
+    end_date DATE NOT NULL,                             -- 챌린지 종료 날짜 (필수 입력)
+    frequency VARCHAR(10) NOT NULL,                    -- 인증 빈도 (예: 일/주/월, 필수 입력)
+    max_frequency INT NOT NULL,                        -- 최대 인증 횟수 (1회 이상, 필수 입력)
+    background_color VARCHAR(20) DEFAULT 'white',      -- 배경색 (기본값: 'white', 선택 입력)
+    icon VARCHAR(255) DEFAULT 'none',                  -- 이모티콘 또는 아이콘 (기본값: 'none', 선택 입력)
+    participation BOOLEAN DEFAULT FALSE,               -- 참여 여부 (기본값: FALSE)
+    proof_board BOOLEAN DEFAULT FALSE,                 -- 인증 게시판 이동 가능 여부 (기본값: FALSE)
+    created_by INT NOT NULL,                           -- 챌린지 생성자 ID (Users 테이블의 USER_ID와 연동)
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,    -- 챌린지 생성 시간 (자동 설정)
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, -- 마지막 수정 시간 (자동 갱신)
+    CONSTRAINT fk_user                                 -- 외래 키 제약 조건 이름
+        FOREIGN KEY (created_by) REFERENCES Users(USER_ID) ON DELETE CASCADE
+);
+
+CREATE TABLE ChallengeBoard (	# 챌린지 게시판
+    board_id INT PRIMARY KEY AUTO_INCREMENT,             -- 게시판 고유 ID
+    category VARCHAR(50) NOT NULL,                      -- 챌린지 분류
+    challenge_id INT NOT NULL,                          -- 챌린지 등록 ID
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,     -- 게시판 생성 시간
+    FOREIGN KEY (challenge_id) REFERENCES ChallengeMake(challenge_id) ON DELETE CASCADE
+);
+
+CREATE TABLE ChallengePost (	# 챌린지 인증글
+    post_id INT PRIMARY KEY AUTO_INCREMENT,             -- 인증글 고유 ID
+    board_id INT NOT NULL,                              -- 게시판 ID
+    title VARCHAR(20) NOT NULL,                        -- 인증글 제목
+    content VARCHAR(300),                              -- 인증글 내용
+    image_url VARCHAR(255),                            -- 첨부된 사진 URL
+    likes INT DEFAULT 0,                               -- 추천(좋아요) 수
+    author_id INT NOT NULL,                            -- 작성자 ID
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,     -- 글 등록 날짜
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, -- 글 수정 날짜
+    FOREIGN KEY (board_id) REFERENCES ChallengeBoard(board_id) ON DELETE CASCADE,
+    FOREIGN KEY (author_id) REFERENCES Users(USER_ID) ON DELETE CASCADE
+);
+
+CREATE TABLE CompetitionPage (
+    competition_id INT AUTO_INCREMENT PRIMARY KEY,       -- 공모전 등록 번호
+    title VARCHAR(100) NOT NULL,                        -- 공모전 제목
+    deadline DATE NOT NULL,                             -- 공모전 기한
+    views INT DEFAULT 0,                                -- 조회수
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,     -- 등록 날짜
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP -- 수정 날짜
+);
+
+CREATE TABLE CompetitionDetails (
+    details_id INT AUTO_INCREMENT PRIMARY KEY,          -- 상세글 고유 ID
+    competition_id INT NOT NULL,                       -- 공모전 페이지와 연결된 공모전 ID
+    title VARCHAR(100) NOT NULL,                       -- 상세글 제목
+    content TEXT NOT NULL,                             -- 상세글 본문
+    image_url VARCHAR(255),                            -- 공모전 이미지 URL
+    participation BOOLEAN DEFAULT FALSE,               -- 참여 여부
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,    -- 상세글 등록 날짜
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, -- 수정 날짜
+    FOREIGN KEY (competition_id) REFERENCES CompetitionPage(competition_id) ON DELETE CASCADE
+);
+
+CREATE TABLE RecruitmentPosts (
+    post_id INT AUTO_INCREMENT PRIMARY KEY,          -- 모집글 고유 ID
+    author_id INT NOT NULL,                          -- 작성자 ID (Users 테이블의 USER_ID 참조)
+    details_id INT NOT NULL,                         -- 공모전 상세글과 연결된 ID (외래 키 추가)
+    title VARCHAR(20) NOT NULL,                      -- 모집글 제목 (최대 20자)
+    content VARCHAR(300) NOT NULL,                   -- 모집글 본문 (최대 300자)
+    google_form_url VARCHAR(2083) NOT NULL,          -- 구글폼 URL (최대 2083자)
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- 글 등록 날짜 및 시간
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, -- 글 수정 날짜 및 시간
+    FOREIGN KEY (author_id) REFERENCES Users(USER_ID) ON DELETE CASCADE,  -- 작성자가 삭제되면 모집글도 삭제
+    FOREIGN KEY (details_id) REFERENCES CompetitionDetails(details_id) ON DELETE CASCADE -- 공모전 상세글과 연결
+);
+
